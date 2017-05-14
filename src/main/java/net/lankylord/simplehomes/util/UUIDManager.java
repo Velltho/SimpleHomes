@@ -213,9 +213,6 @@ public class UUIDManager {
             if (shouldUpdateValue(playerName)) {
                 // Update cached values
                 addCachedPlayer(playerName, uuid);
-            } else {
-                // Do not update if it is not needed.
-                continue;
             }
         }
         // Thread stopped now, collect results
@@ -329,9 +326,6 @@ public class UUIDManager {
             if (shouldUpdateValue(playerName)) {
                 // Update cached values
                 addCachedPlayer(playerName, uuid);
-            } else {
-                // Do not update if it is not needed.
-                continue;
             }
         }
         // Thread stopped now, collect results
@@ -379,9 +373,6 @@ public class UUIDManager {
         final long currentTime = System.currentTimeMillis();
         final long lifeTime = currentTime - lastCacheTime;
         // The cached value is older than it ought to be.
-        if ((lifeTime / 3600000) > maxLifeTime) {
-            return true;
-        }
-        return false;
+        return (lifeTime / 3600000) > maxLifeTime;
     }
 }

@@ -193,7 +193,14 @@ public class HomeManager {
 
     @SuppressWarnings("unchecked")
     public Map<String, Location> getPlayerHomes(UUID uuid) {
-        return loadedHomes.get(uuid);
+        if (loadedHomes.containsKey(uuid)) {
+            return loadedHomes.get(uuid);
+        } else {
+            loadPlayerHomes(uuid);
+            HashMap playerHomes = (HashMap) loadedHomes.get(uuid);
+            unloadPlayerHomes(uuid);
+            return playerHomes;
+        }
     }
 
     public Map<UUID, Map<String, Location>> getHomes() {

@@ -28,6 +28,7 @@
  */
 package net.lankylord.simplehomes.commands;
 
+import net.lankylord.simplehomes.SimpleHomes;
 import net.lankylord.simplehomes.configuration.languages.LanguageManager;
 import net.lankylord.simplehomes.homes.HomeManager;
 import net.lankylord.simplehomes.util.UUIDManager;
@@ -37,10 +38,7 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
-import java.util.Arrays;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 public class HomeListCommand implements CommandExecutor {
 
@@ -55,8 +53,19 @@ public class HomeListCommand implements CommandExecutor {
         if (sender instanceof Player) {
             Player player = (Player) sender;
             try {
+                Set<String> homeSet = new HashSet<>();
                 // Returns a null if the user has no homes
-                Set<String> homeSet = homeManager.getPlayerHomes(player.getUniqueId()).keySet();
+                if(strings.length != 0) {
+                    UUID uuid = UUIDManager.getUUIDFromPlayer(strings[0]);
+                    player.sendMessage(uuid.toString());
+                    if (uuid != null) {
+                        homeSet = homeManager.getPlayerHomes(UUIDManager.getUUIDFromPlayer(strings[0])).keySet();
+                    } else {
+                        player.sendMessage(LanguageManager.PLAYER_NOT_EXIST);
+                    }
+                } else {
+                    homeSet = homeManager.getPlayerHomes(player.getUniqueId()).keySet();
+                }
                 String[] homeString = homeSet.toArray(new String[homeSet.size()]);
                 Arrays.sort(homeString);
 

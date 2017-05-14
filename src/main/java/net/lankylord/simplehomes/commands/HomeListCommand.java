@@ -56,7 +56,6 @@ public class HomeListCommand implements CommandExecutor {
                 // Returns a null if the user has no homes
                 if(strings.length != 0) {
                     UUID uuid = UUIDManager.getUUIDFromPlayer(strings[0]);
-                    player.sendMessage(uuid.toString());
                     if (uuid != null) {
                         homeSet = homeManager.getPlayerHomes(UUIDManager.getUUIDFromPlayer(strings[0])).keySet();
                     } else {

@@ -25,13 +25,13 @@ import java.util.UUID;
 public class UUIDManager {
 
     // This hashmap stores the cached values of uuids for players.
-    private static HashMap<String, UUID> cachedUUIDs = new HashMap<String, UUID>();
-    private static Map<UUID, String> foundPlayers = new HashMap<UUID, String>();
-    private static Map<String, UUID> foundUUIDs = new HashMap<String, UUID>();
+    private static HashMap<String, UUID> cachedUUIDs = new HashMap<>();
+    private static Map<UUID, String> foundPlayers = new HashMap<>();
+    private static Map<String, UUID> foundUUIDs = new HashMap<>();
     // This hashmap stores the latest cache time for a certain player.
     // This is used to see if the cached UUID was older than 12 hours. If it is older than 12 hours,
     // it will be renewed.
-    private static HashMap<String, Long> lastCached = new HashMap<String, Long>();
+    private static HashMap<String, Long> lastCached = new HashMap<>();
     // This is the time that one cached value is valid (in hours).
     private static final int maxLifeTime = 12;
     // Whether to use cache or not
@@ -143,7 +143,7 @@ public class UUIDManager {
         // Clear names first
         foundPlayers.clear();
         // A new map to store cached values
-        final HashMap<UUID, String> players = new HashMap<UUID, String>();
+        final HashMap<UUID, String> players = new HashMap<>();
         // This is used to check if we need to use the lookup from the mojang website.
         boolean useInternetLookup = true;
         if (useCache) {
@@ -182,25 +182,22 @@ public class UUIDManager {
             }
         }
         // Now we need to lookup the other players
-        final Thread fetcherThread = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                final NameFetcher fetcher = new NameFetcher(uuids);
-                Map<UUID, String> response = null;
-                try {
-                    response = fetcher.call();
-                } catch (final Exception e) {
-                    if (e instanceof IOException) {
-                        Bukkit.getLogger()
-                                .warning(
-                                        "Tried to contact Mojang page for UUID lookup but failed.");
-                        return;
-                    }
-                    e.printStackTrace();
+        final Thread fetcherThread = new Thread(() -> {
+            final NameFetcher fetcher = new NameFetcher(uuids);
+            Map<UUID, String> response = null;
+            try {
+                response = fetcher.call();
+            } catch (final Exception e) {
+                if (e instanceof IOException) {
+                    Bukkit.getLogger()
+                            .warning(
+                                    "Tried to contact Mojang page for UUID lookup but failed.");
+                    return;
                 }
-                if (response != null) {
-                    foundPlayers = response;
-                }
+                e.printStackTrace();
+            }
+            if (response != null) {
+                foundPlayers = response;
             }
         });
         fetcherThread.start();
@@ -270,7 +267,7 @@ public class UUIDManager {
         // Clear maps first
         foundUUIDs.clear();
         // A new map to store cached values
-        final HashMap<String, UUID> uuids = new HashMap<String, UUID>();
+        final HashMap<String, UUID> uuids = new HashMap<>();
         // This is used to check if we need to use the lookup from the mojang website.
         boolean useInternetLookup = true;
         if (useCache) {
@@ -301,25 +298,22 @@ public class UUIDManager {
             }
         }
         // Now we need to lookup the other players
-        final Thread fetcherThread = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                final UUIDFetcher fetcher = new UUIDFetcher(names);
-                Map<String, UUID> response = null;
-                try {
-                    response = fetcher.call();
-                } catch (final Exception e) {
-                    if (e instanceof IOException) {
-                        Bukkit.getLogger()
-                                .warning(
-                                        "Tried to contact Mojang page for UUID lookup but failed.");
-                        return;
-                    }
-                    e.printStackTrace();
+        final Thread fetcherThread = new Thread(() -> {
+            final UUIDFetcher fetcher = new UUIDFetcher(names);
+            Map<String, UUID> response = null;
+            try {
+                response = fetcher.call();
+            } catch (final Exception e) {
+                if (e instanceof IOException) {
+                    Bukkit.getLogger()
+                            .warning(
+                                    "Tried to contact Mojang page for UUID lookup but failed.");
+                    return;
                 }
-                if (response != null) {
-                    foundUUIDs = response;
-                }
+                e.printStackTrace();
+            }
+            if (response != null) {
+                foundUUIDs = response;
             }
         });
         fetcherThread.start();

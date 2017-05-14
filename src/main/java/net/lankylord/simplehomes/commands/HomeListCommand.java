@@ -93,8 +93,8 @@ public class HomeListCommand implements CommandExecutor {
         if (size > 0) {
             StringBuilder sb = new StringBuilder();
             if (size > 1) {
-                for (int i = 0; i < size; i++) {
-                    sb.append(playerHomes[i]).append(", ");
+                for (String playerHome : playerHomes) {
+                    sb.append(playerHome).append(", ");
                 }
             }
             sb.append(playerHomes[size - 1]);

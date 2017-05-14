@@ -4,12 +4,8 @@ import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.UUID;
 
 /**
  * This class allows developers to easily get UUIDs from names <br>
@@ -116,7 +112,7 @@ public class UUIDManager {
         if (uuid == null) {
             return null;
         }
-        final Map<UUID, String> players = getPlayers(Arrays.asList(uuid));
+        final Map<UUID, String> players = getPlayers(Collections.singletonList(uuid));
         if (players == null) {
             return null;
         }
@@ -237,7 +233,7 @@ public class UUIDManager {
         if (playerName == null) {
             return null;
         }
-        final Map<String, UUID> uuids = getUUIDs(Arrays.asList(playerName));
+        final Map<String, UUID> uuids = getUUIDs(Collections.singletonList(playerName));
         if (uuids == null) {
             return null;
         }

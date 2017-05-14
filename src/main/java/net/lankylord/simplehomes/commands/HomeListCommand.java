@@ -57,7 +57,7 @@ public class HomeListCommand implements CommandExecutor {
                 if(strings.length != 0) {
                     UUID uuid = UUIDManager.getUUIDFromPlayer(strings[0]);
                     if (uuid != null) {
-                        homeSet = homeManager.getPlayerHomes(UUIDManager.getUUIDFromPlayer(strings[0])).keySet();
+                        homeSet = homeManager.getPlayerHomes(uuid).keySet();
                     } else {
                         player.sendMessage(LanguageManager.PLAYER_NOT_EXIST);
                     }

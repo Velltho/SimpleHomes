@@ -145,6 +145,8 @@ public class HomeManager {
                 }
             }
             loadedHomes.put(uuid, homeLocation);
+        } else {
+            loadedHomes.put(uuid, new HashMap<>());
         }
     }
 

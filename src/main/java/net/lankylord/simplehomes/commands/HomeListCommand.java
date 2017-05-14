@@ -52,7 +52,6 @@ public class HomeListCommand implements CommandExecutor {
     public boolean onCommand(CommandSender sender, Command command, String s, String[] strings) {
         if (sender instanceof Player) {
             Player player = (Player) sender;
-            try {
                 Set<String> homeSet = new HashSet<>();
                 // Returns a null if the user has no homes
                 if(strings.length != 0) {
@@ -70,27 +69,26 @@ public class HomeListCommand implements CommandExecutor {
                 Arrays.sort(homeString);
 
                 String homes = homeListString(homeString);
-                sender.sendMessage(LanguageManager.HOME_LIST_PREFIX + " " + homes);
-
-            } catch (NullPointerException e) {
-                sender.sendMessage(LanguageManager.NO_HOMES_FOUND);
-            }
+                if (homes != null) {
+                    sender.sendMessage(LanguageManager.HOME_LIST_PREFIX + " " + homes);
+                } else {
+                    sender.sendMessage(LanguageManager.NO_HOMES_FOUND);
+                }
             return true;
         } else {
             //sender.sendMessage(LanguageManager.PLAYER_COMMAND_ONLY);
             Map<UUID, Map<String, Location>> homes = homeManager.getHomes();
             for (Map.Entry<UUID, Map<String, Location>> entry : homes.entrySet()) {
                 String playerName = UUIDManager.getPlayerFromUUID(entry.getKey());
-                try {
                     Set<String> playerHomes = entry.getValue().keySet();
                     String[] homeStrings = playerHomes.toArray(new String[playerHomes.size()]);
                     Arrays.sort(homeStrings);
                     String homeList = homeListString(homeStrings);
-                    sender.sendMessage("[" + playerName + "]" + LanguageManager.HOME_LIST_PREFIX + " " + homeList);
-                } catch (NullPointerException e) {
-                    sender.sendMessage("[" + playerName + "]" + " " + LanguageManager.NO_HOMES_FOUND);
-                }
-
+                    if (homeList != null) {
+                        sender.sendMessage("[" + playerName + "]" + LanguageManager.HOME_LIST_PREFIX + " " + homeList);
+                    } else {
+                        sender.sendMessage("[" + playerName + "]" + " " + LanguageManager.NO_HOMES_FOUND);
+                    }
 
             }
             return true;

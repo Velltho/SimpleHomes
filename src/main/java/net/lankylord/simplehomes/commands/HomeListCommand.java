@@ -28,7 +28,6 @@
  */
 package net.lankylord.simplehomes.commands;
 
-import net.lankylord.simplehomes.SimpleHomes;
 import net.lankylord.simplehomes.configuration.languages.LanguageManager;
 import net.lankylord.simplehomes.homes.HomeManager;
 import net.lankylord.simplehomes.util.UUIDManager;

@@ -46,7 +46,7 @@ public class HomeManager {
 
     public HomeManager(HomeFileManager fileManager) {
         this.fileManager = fileManager;
-        this.loadedHomes = new HashMap<>();
+        this.loadedHomes = new HashMap<UUID, Map<String, Location>>();
     }
 
     /**
@@ -93,7 +93,6 @@ public class HomeManager {
      * @param player   The player
      * @param homeName Name of the home
      */
-    @SuppressWarnings("unchecked")
     public void saveHome(Player player, String homeName) {
         UUID uuid = player.getUniqueId();
         Location location = player.getLocation();
@@ -108,9 +107,8 @@ public class HomeManager {
         saveHomeToFile(uuid, location, homeName);
     }
 
-    @SuppressWarnings("unchecked")
     public void deleteHome(UUID uuid, String homeName) {
-        Map homeLocations = loadedHomes.get(uuid);
+        Map<String, Location> homeLocations = loadedHomes.get(uuid);
         if (homeLocations != null) {
             homeLocations.remove(homeName.toLowerCase());
             loadedHomes.put(uuid, homeLocations);
@@ -166,7 +164,6 @@ public class HomeManager {
      * @param homeName Name of the home
      * @return Location of home
      */
-    @SuppressWarnings("unchecked")
     public Location getPlayerHome(UUID uuid, String homeName) {
         Map<String, Location> homeLocations = loadedHomes.get(uuid);
         if (homeLocations != null) {
@@ -193,13 +190,12 @@ public class HomeManager {
         return homeLocation.get(homeName.toLowerCase());
     }
 
-    @SuppressWarnings("unchecked")
     public Map<String, Location> getPlayerHomes(UUID uuid) {
         if (loadedHomes.containsKey(uuid)) {
             return loadedHomes.get(uuid);
         } else {
             loadPlayerHomes(uuid);
-            HashMap playerHomes = (HashMap) loadedHomes.get(uuid);
+            HashMap<String, Location> playerHomes = (HashMap<String, Location>) loadedHomes.get(uuid);
             unloadPlayerHomes(uuid);
             return playerHomes;
         }

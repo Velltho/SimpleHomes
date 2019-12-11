@@ -65,14 +65,14 @@ public class OtherHomeCommand implements CommandExecutor {
                 homeName = "default";
             }
             final String targetName = strings[0].toLowerCase();
-            simpleHomes.getServer().getScheduler().runTaskAsynchronously(simpleHomes, new BukkitRunnable() {
+            new BukkitRunnable() {
                 UUID targetUUID;
 
                 @Override
                 public void run() {
                     targetUUID = UUIDManager.getUUIDFromPlayer(targetName);
                     if (targetUUID != null) {
-                        simpleHomes.getServer().getScheduler().runTask(simpleHomes, new BukkitRunnable() {
+                        new BukkitRunnable() {
                             @Override
                             public void run() {
                                 Location location = homeManager.getPlayerHome(targetUUID, homeName);
@@ -86,12 +86,12 @@ public class OtherHomeCommand implements CommandExecutor {
                                     player.sendMessage(LanguageManager.HOME_NOT_FOUND);
                                 }
                             }
-                        });
+                        }.runTask(simpleHomes);
                     } else {
                         player.sendMessage(LanguageManager.PLAYER_NOT_EXIST);
                     }
                 }
-            });
+            }.runTaskAsynchronously(simpleHomes);
         } else {
             sender.sendMessage(LanguageManager.PLAYER_COMMAND_ONLY);
         }

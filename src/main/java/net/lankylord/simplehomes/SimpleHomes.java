@@ -135,6 +135,8 @@ public class SimpleHomes extends JavaPlugin {
                     //No update found
                     getLogger().log(Level.INFO, "No update found.");
                     break;
+			default:
+				break;
             }
         }
     }

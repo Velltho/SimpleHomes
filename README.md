@@ -1,4 +1,4 @@
-#![SimpleHomes](http://i.imgur.com/AB4gdzk.png)
+# ![SimpleHomes](http://i.imgur.com/AB4gdzk.png)
 
 SimpleHomes is a simple, easy-to-use system for allowing players to set homes and then teleport back to them. Key features of SimpleHomes include:
 
@@ -11,11 +11,11 @@ SimpleHomes is a simple, easy-to-use system for allowing players to set homes an
 * Teleport to another player's home.
 
 
-##Compiling
+## Compiling
 
 SimpleHomes requires multiple dependencies, however these are handled by the build script.
 
-###Maven
+### Maven
 
 **Don't have Maven?** [Download Maven](http://maven.apache.org/download.cgi)
 from the Maven website.
@@ -26,10 +26,10 @@ From SimpleHomes' directory, execute the following command to compile the plugin
 
 Once done, the *target/* folder will contain the SimpleHomes jar file.
 
-##Links
+## Links
 
 * [BukkitDev](http://dev.bukkit.org/bukkit-plugins/simplehomes/)
 * [Travis-Ci](https://travis-ci.org/LankyLord/SimpleHomes)
 
-##Current Build
+## Current Build
 [![Build Status](https://travis-ci.org/LankyLord/SimpleHomes.png?branch=master)](https://travis-ci.org/LankyLord/SimpleHomes)

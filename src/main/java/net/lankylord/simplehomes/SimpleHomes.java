@@ -29,7 +29,6 @@
 
 package net.lankylord.simplehomes;
 
-import net.gravitydevelopment.updater.Updater;
 import net.lankylord.simplehomes.commands.DeleteHomeCommand;
 import net.lankylord.simplehomes.commands.HomeCommand;
 import net.lankylord.simplehomes.commands.HomeListCommand;
@@ -77,9 +76,6 @@ public class SimpleHomes extends JavaPlugin {
         homeFileManager.saveHomes();
         loadCommands();
         loadListeners();
-        if (getConfig().getBoolean("AutoUpdater.Enabled", true)) {
-            loadUpdater();
-        }
         getLogger().info("SimpleHomes Enabled!");
     }
 
@@ -87,56 +83,6 @@ public class SimpleHomes extends JavaPlugin {
     public void onDisable() {
         homeFileManager.saveHomes();
         getLogger().log(Level.INFO, "SimpleHomes Disabled!");
-    }
-
-    private void loadUpdater() {
-        if (getConfig().getBoolean("AutoUpdater.Enabled")) {
-            String mode = getConfig().getString("AutoUpdater.Mode");
-            Updater.UpdateType updateType;
-            switch (mode.toLowerCase()) {
-                case "update":
-                    //Update the plugin automatically
-                    updateType = Updater.UpdateType.DEFAULT;
-                    getLogger().log(Level.INFO, "AutoUpdater Enabled: Update");
-                    break;
-                case "notify":
-                    //Notify admins of available updates
-                    updateType = Updater.UpdateType.NO_DOWNLOAD;
-                    getLogger().log(Level.INFO, "AutoUpdater Enabled: Notify");
-                    break;
-                default:
-                    //Default to notification mode
-                    updateType = Updater.UpdateType.NO_DOWNLOAD;
-                    getLogger().log(Level.INFO, "AutoUpdater Enabled: Invalid Mode - Defaulting to Notify");
-                    break;
-            }
-
-            Updater updater = new Updater(this, 48509, this.getFile(), updateType, true);
-            Updater.UpdateResult updateResult = updater.getResult();
-
-            switch (updateResult) {
-                case SUCCESS:
-                    //Update detected and downloaded
-                    getLogger().log(Level.INFO, "Plugin will be updated at next restart");
-                    updateAvailable = true;
-                    break;
-                case FAIL_DOWNLOAD:
-                case FAIL_DBO:
-                case FAIL_NOVERSION:
-                    //Fail to get updates
-                    getLogger().log(Level.WARNING, "Plugin failed to check for updates");
-                    break;
-                case UPDATE_AVAILABLE:
-                    //Update detected but not downloaded
-                    getLogger().log(Level.INFO, "There is an update available on BukkitDev");
-                    updateAvailable = true;
-                    break;
-                case NO_UPDATE:
-                    //No update found
-                    getLogger().log(Level.INFO, "No update found.");
-                    break;
-            }
-        }
     }
 
     private void loadCommands() {

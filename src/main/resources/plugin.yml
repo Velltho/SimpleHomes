@@ -1,5 +1,6 @@
 name: SimpleHomes
 version: ${version}
+api-version: "1.20"
 description: Plugin that allows players to use homes.
 authors: [Lanky_Lord, cedeel]
 website: https://github.com/LankyLord/SimpleHomes

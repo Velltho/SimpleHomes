@@ -90,8 +90,7 @@ public class HomeFileManager {
     }
 
     public void UuidUpdate() {
-        File oldFile = new File(instance.getDataFolder(), "Homes.yml.bak");
-        //File newFile = new File(instance.getDataFolder(), fileName);
+        File oldFile = new File(instance.getDataFolder(), fileName + ".bak");
 
         instance.getLogger().info("Beginning UUID conversion. This might take a while...");
         YamlConfiguration oldConfig = getHomes();

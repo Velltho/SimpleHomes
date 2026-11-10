@@ -28,6 +28,7 @@
  */
 package net.lankylord.simplehomes.commands;
 
+import net.lankylord.simplehomes.SimpleHomes;
 import net.lankylord.simplehomes.configuration.languages.LanguageManager;
 import net.lankylord.simplehomes.homes.HomeManager;
 import org.bukkit.Location;
@@ -38,31 +39,43 @@ import org.bukkit.entity.Player;
 
 public class HomeCommand implements CommandExecutor {
 
+    private final SimpleHomes simpleHomes;
     private final HomeManager homeManager;
 
-    public HomeCommand(HomeManager manager) {
+    public HomeCommand(SimpleHomes plugin, HomeManager manager) {
+        simpleHomes = plugin;
         homeManager = manager;
     }
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String s, String[] strings) {
-        if (sender instanceof Player) {
-            Player player = (Player) sender;
-            String homeName = "default";
-            if (strings.length == 1 && sender.hasPermission("simplehomes.multihomes")) {
-                homeName = strings[0].toLowerCase();
+        if (!(sender instanceof Player)) {
+            sender.sendMessage(LanguageManager.PLAYER_COMMAND_ONLY);
+            return false;
+        }
+
+        Player player = (Player) sender;
+        String homeName = "default";
+        if (strings.length == 1 && sender.hasPermission("simplehomes.multihomes")) {
+            homeName = strings[0].toLowerCase();
+        }
+        final Location home = homeManager.getPlayerHome(player.getUniqueId(), homeName);
+
+        player.getScheduler().run(simpleHomes, task -> {
+            if (!player.isOnline()) {
+                return;
             }
-            Location home = homeManager.getPlayerHome(player.getUniqueId(), homeName);
+
             if (home != null) {
-                player.teleport(home);
-                player.sendMessage(LanguageManager.TELEPORT_SUCCESS);
-                return true;
+                player.teleportAsync(home).thenAccept(success -> {
+                    if (success) {
+                        player.sendMessage(LanguageManager.TELEPORT_SUCCESS);
+                    }
+                });
             } else {
                 player.sendMessage(LanguageManager.HOME_NOT_FOUND);
-                return true;
             }
-        }
-        sender.sendMessage(LanguageManager.PLAYER_COMMAND_ONLY);
+        }, null);
         return true;
     }
 }

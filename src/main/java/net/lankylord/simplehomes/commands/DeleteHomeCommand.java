@@ -28,8 +28,12 @@
  */
 package net.lankylord.simplehomes.commands;
 
+import net.lankylord.simplehomes.SimpleHomes;
 import net.lankylord.simplehomes.configuration.languages.LanguageManager;
 import net.lankylord.simplehomes.homes.HomeManager;
+
+import java.util.UUID;
+
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -38,24 +42,40 @@ import org.bukkit.entity.Player;
 public class DeleteHomeCommand implements CommandExecutor {
 
     private final HomeManager homeManager;
+    private final SimpleHomes simpleHomes;
 
-    public DeleteHomeCommand(HomeManager manager) {
+    public DeleteHomeCommand(SimpleHomes plugin, HomeManager manager) {
+        simpleHomes = plugin;
         homeManager = manager;
     }
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String s, String[] strings) {
-        if (sender instanceof Player) {
-            Player player = (Player) sender;
-            String homeName = "default";
-            if (strings.length == 1 && sender.hasPermission("simplehomes.multihomes")) {
-                homeName = strings[0].toLowerCase();
-            }
-            homeManager.deleteHome(player.getUniqueId(), homeName);
-            player.sendMessage(LanguageManager.HOME_DELETED);
-            return true;
+        if (!(sender instanceof Player)) {
+            sender.sendMessage(LanguageManager.PLAYER_COMMAND_ONLY);
+            return false;
         }
-        sender.sendMessage(LanguageManager.PLAYER_COMMAND_ONLY);
+
+        Player player = (Player) sender;
+        String homeName = "default";
+        if (strings.length == 1 && sender.hasPermission("simplehomes.multihomes")) {
+            homeName = strings[0].toLowerCase();
+        }
+
+        final String homeToDelete = homeName;
+        final UUID playerUUID = player.getUniqueId();
+
+        simpleHomes.getServer().getAsyncScheduler().runNow(simpleHomes, asyncTask -> {
+            homeManager.deleteHome(playerUUID, homeToDelete);
+
+            player.getScheduler().run(simpleHomes, task -> {
+                if (!player.isOnline()) {
+                    return;
+                }
+                player.sendMessage(LanguageManager.HOME_DELETED);
+            }, null);
+        });
+
         return true;
     }
 }

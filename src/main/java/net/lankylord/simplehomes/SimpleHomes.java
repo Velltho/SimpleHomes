@@ -52,8 +52,6 @@ public class SimpleHomes extends JavaPlugin {
     private HomeFileManager homeFileManager;
     private HomeManager homeManager;
 
-    private boolean updateAvailable = false;
-
     @Override
     public void onEnable() {
         FileConfiguration config = this.getConfig();
@@ -65,7 +63,7 @@ public class SimpleHomes extends JavaPlugin {
                 homeFileManager.UuidUpdate();
             }
         }
-        //this.saveDefaultConfig();
+
         config.options().copyDefaults(true);
         this.saveConfig();
         LanguageFileManager languageFileManager = new LanguageFileManager(this);
@@ -86,8 +84,8 @@ public class SimpleHomes extends JavaPlugin {
     }
 
     private void loadCommands() {
-        this.getCommand("delhome").setExecutor(new DeleteHomeCommand(homeManager));
-        this.getCommand("home").setExecutor(new HomeCommand(homeManager));
+        this.getCommand("delhome").setExecutor(new DeleteHomeCommand(this, homeManager));
+        this.getCommand("home").setExecutor(new HomeCommand(this, homeManager));
         this.getCommand("homelist").setExecutor(new HomeListCommand(homeManager));
         this.getCommand("otherhome").setExecutor(new OtherHomeCommand(this, homeManager));
         this.getCommand("sethome").setExecutor(new SetHomeCommand(homeManager));
@@ -95,6 +93,6 @@ public class SimpleHomes extends JavaPlugin {
     }
 
     private void loadListeners() {
-        this.getServer().getPluginManager().registerEvents(new GatewayListener(homeManager, updateAvailable), this);
+        this.getServer().getPluginManager().registerEvents(new GatewayListener(homeManager), this);
     }
 }

@@ -37,7 +37,6 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
-import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.UUID;
 
@@ -53,48 +52,55 @@ public class OtherHomeCommand implements CommandExecutor {
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String s, String[] strings) {
-        if (sender instanceof Player) {
-            if (strings.length == 0) {
-                return false;
-            }
-            final Player player = (Player) sender;
-            final String homeName;
-            if (strings.length == 2) {
-                homeName = strings[1].toLowerCase();
-            } else {
-                homeName = "default";
-            }
-            final String targetName = strings[0].toLowerCase();
-            simpleHomes.getServer().getScheduler().runTaskAsynchronously(simpleHomes, new BukkitRunnable() {
-                UUID targetUUID;
-
-                @Override
-                public void run() {
-                    targetUUID = UUIDManager.getUUIDFromPlayer(targetName);
-                    if (targetUUID != null) {
-                        simpleHomes.getServer().getScheduler().runTask(simpleHomes, new BukkitRunnable() {
-                            @Override
-                            public void run() {
-                                Location location = homeManager.getPlayerHome(targetUUID, homeName);
-                                if (location == null) {
-                                    location = homeManager.getPlayerHomeFromFile(targetUUID, homeName);
-                                }
-                                if (location != null) {
-                                    player.teleport(location);
-                                    player.sendMessage(LanguageManager.TELEPORT_OTHERHOME.replaceAll("%p", targetName));
-                                } else {
-                                    player.sendMessage(LanguageManager.HOME_NOT_FOUND);
-                                }
-                            }
-                        });
-                    } else {
-                        player.sendMessage(LanguageManager.PLAYER_NOT_EXIST);
-                    }
-                }
-            });
-        } else {
+        if (!(sender instanceof Player)) {
             sender.sendMessage(LanguageManager.PLAYER_COMMAND_ONLY);
+            return true;
         }
+
+        if (strings.length == 0) {
+            return false;
+        }
+
+        final String homeName = (strings.length == 2) ? strings[1].toLowerCase() : "default";
+        final String targetName = strings[0].toLowerCase();
+        final Player player = (Player) sender;
+
+        simpleHomes.getServer().getAsyncScheduler().runNow(simpleHomes, asyncTask -> {
+            UUID targetUUID = UUIDManager.getUUIDFromPlayer(targetName);
+
+            if (targetUUID == null) {
+                player.getScheduler().run(simpleHomes, task -> {
+                    player.sendMessage(LanguageManager.PLAYER_NOT_EXIST);
+                }, null);
+                return;
+            }
+
+            Location location = homeManager.getPlayerHome(targetUUID, homeName);
+            if (location == null) {
+                location = homeManager.getPlayerHomeFromFile(targetUUID, homeName);
+            }
+
+            final Location destination = location;
+
+            player.getScheduler().run(simpleHomes, task -> {
+                if (!player.isOnline()) {
+                    return;
+                }
+
+                if (destination != null) {
+                    player.teleportAsync(destination).thenAccept(success -> {
+                        if (success) {
+                            player.sendMessage(LanguageManager.TELEPORT_OTHERHOME
+                                .replaceText(b -> b.matchLiteral("%p").replacement(targetName))
+                            );
+                        }
+                    });
+                } else {
+                    player.sendMessage(LanguageManager.HOME_NOT_FOUND);
+                }
+            }, null);
+        });
+        
         return true;
     }
 }

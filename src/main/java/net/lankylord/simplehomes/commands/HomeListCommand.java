@@ -28,7 +28,7 @@
  */
 package net.lankylord.simplehomes.commands;
 
-import net.lankylord.simplehomes.SimpleHomes;
+import net.kyori.adventure.text.Component;
 import net.lankylord.simplehomes.configuration.languages.LanguageManager;
 import net.lankylord.simplehomes.homes.HomeManager;
 import net.lankylord.simplehomes.util.UUIDManager;
@@ -69,13 +69,12 @@ public class HomeListCommand implements CommandExecutor {
 
                 String homes = homeListString(homeString);
                 if (homes != null) {
-                    sender.sendMessage(LanguageManager.HOME_LIST_PREFIX + " " + homes);
+                    sender.sendMessage(LanguageManager.HOME_LIST_PREFIX.append(Component.text(" " + homes)));
                 } else {
                     sender.sendMessage(LanguageManager.NO_HOMES_FOUND);
                 }
             return true;
         } else {
-            //sender.sendMessage(LanguageManager.PLAYER_COMMAND_ONLY);
             Map<UUID, Map<String, Location>> homes = homeManager.getHomes();
             for (Map.Entry<UUID, Map<String, Location>> entry : homes.entrySet()) {
                 String playerName = UUIDManager.getPlayerFromUUID(entry.getKey());
@@ -84,9 +83,9 @@ public class HomeListCommand implements CommandExecutor {
                     Arrays.sort(homeStrings);
                     String homeList = homeListString(homeStrings);
                     if (homeList != null) {
-                        sender.sendMessage("[" + playerName + "]" + LanguageManager.HOME_LIST_PREFIX + " " + homeList);
+                        sender.sendMessage(Component.text("[" + playerName + "]").append(LanguageManager.HOME_LIST_PREFIX).append(Component.text(homeList)));
                     } else {
-                        sender.sendMessage("[" + playerName + "]" + " " + LanguageManager.NO_HOMES_FOUND);
+                        sender.sendMessage(Component.text("[" + playerName + "] ").append(LanguageManager.NO_HOMES_FOUND));
                     }
 
             }
@@ -95,18 +94,7 @@ public class HomeListCommand implements CommandExecutor {
     }
 
     private String homeListString(String[] playerHomes) {
-        int size = playerHomes.length;
-        if (size > 0) {
-            StringBuilder sb = new StringBuilder();
-            if (size > 1) {
-                for (String playerHome : playerHomes) {
-                    sb.append(playerHome).append(", ");
-                }
-            }
-            sb.append(playerHomes[size - 1]);
-
-            return sb.toString();
-        }
-        return null;
+        if (playerHomes.length == 0) return null;
+        return String.join(", ", playerHomes);
     }
 }

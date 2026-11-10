@@ -28,11 +28,7 @@
  */
 package net.lankylord.simplehomes.storage;
 
-import com.google.common.io.Files;
 import net.lankylord.simplehomes.SimpleHomes;
-import net.lankylord.simplehomes.configuration.ConfigManager;
-import net.lankylord.simplehomes.util.UUIDFetcher;
-import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
 
 import java.io.BufferedReader;
@@ -40,10 +36,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
 import java.util.logging.Level;
 
 public class HomeFileManager {
@@ -89,57 +81,4 @@ public class HomeFileManager {
         }
     }
 
-    public void UuidUpdate() {
-        File oldFile = new File(instance.getDataFolder(), fileName + ".bak");
-
-        instance.getLogger().info("Beginning UUID conversion. This might take a while...");
-        YamlConfiguration oldConfig = getHomes();
-        YamlConfiguration result = new YamlConfiguration();
-
-        Map<String, UUID> users, lusers;
-        try {
-            users = new UUIDFetcher(new ArrayList<>(oldConfig.getKeys(false))).call();
-
-            lusers = new HashMap<>(users.size());
-            for (Map.Entry<String, UUID> e : users.entrySet()) {
-                lusers.put(e.getKey().toLowerCase(), e.getValue());
-            }
-        } catch (Exception e) {
-            return;
-        }
-
-        for (String key : oldConfig.getKeys(false)) {
-            try {
-                String target = lusers.get(key.toLowerCase()).toString();
-                ConfigurationSection section = result.createSection(target);
-                ConfigurationSection oldSection = oldConfig.getConfigurationSection(key);
-
-                for (String homeName : oldSection.getKeys(false)) {
-                    ConfigurationSection homeSection = section.createSection(homeName);
-                    ConfigurationSection oldHome = oldSection.getConfigurationSection(homeName);
-                    homeSection.set("world", oldHome.get("world"));
-                    homeSection.set("x", oldHome.get("x"));
-                    homeSection.set("y", oldHome.get("y"));
-                    homeSection.set("z", oldHome.get("z"));
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-
-        try {
-            if (homesFile == null) {
-                homesFile = new File(instance.getDataFolder(), fileName);
-            }
-            Files.copy(homesFile, oldFile);
-            result.save(homesFile);
-            reloadHomes();
-            instance.getConfig().options().copyDefaults(true);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        instance.getConfig().set("ConfigVersion", ConfigManager.CONFIG_VERSION);
-        instance.getLogger().info("UUID conversion completed successfully.");
-    }
 }

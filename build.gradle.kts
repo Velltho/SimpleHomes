@@ -9,7 +9,7 @@ java {
 }
 
 group = "net.lankylord"
-version = "2.1.0"
+version = "2.2.0"
 description = "SimpleHomes"
 
 repositories {

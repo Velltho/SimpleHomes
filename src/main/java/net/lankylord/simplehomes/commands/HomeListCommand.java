@@ -31,14 +31,18 @@ package net.lankylord.simplehomes.commands;
 import net.kyori.adventure.text.Component;
 import net.lankylord.simplehomes.configuration.languages.LanguageManager;
 import net.lankylord.simplehomes.homes.HomeManager;
-import net.lankylord.simplehomes.util.UUIDManager;
+import net.lankylord.simplehomes.util.ProfileLookup;
+
 import org.bukkit.Location;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collectors;
 
 public class HomeListCommand implements CommandExecutor {
 
@@ -49,52 +53,76 @@ public class HomeListCommand implements CommandExecutor {
     }
 
     @Override
-    public boolean onCommand(CommandSender sender, Command command, String s, String[] strings) {
-        if (sender instanceof Player) {
-            Player player = (Player) sender;
-                Set<String> homeSet = new HashSet<>();
-                // Returns a null if the user has no homes
-                if(strings.length != 0) {
-                    UUID uuid = UUIDManager.getUUIDFromPlayer(strings[0]);
-                    if (uuid != null) {
-                        homeSet = homeManager.getPlayerHomes(uuid).keySet();
-                    } else {
-                        player.sendMessage(LanguageManager.PLAYER_NOT_EXIST);
-                    }
-                } else {
-                    homeSet = homeManager.getPlayerHomes(player.getUniqueId()).keySet();
-                }
-                String[] homeString = homeSet.toArray(new String[homeSet.size()]);
-                Arrays.sort(homeString);
-
-                String homes = homeListString(homeString);
-                if (homes != null) {
-                    sender.sendMessage(LanguageManager.HOME_LIST_PREFIX.append(Component.text(" " + homes)));
-                } else {
-                    sender.sendMessage(LanguageManager.NO_HOMES_FOUND);
-                }
-            return true;
+    public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
+        if (sender instanceof Player player) {
+            handlePlayerCommand(player, args);
         } else {
-            Map<UUID, Map<String, Location>> homes = homeManager.getHomes();
-            for (Map.Entry<UUID, Map<String, Location>> entry : homes.entrySet()) {
-                String playerName = UUIDManager.getPlayerFromUUID(entry.getKey());
-                    Set<String> playerHomes = entry.getValue().keySet();
-                    String[] homeStrings = playerHomes.toArray(new String[playerHomes.size()]);
-                    Arrays.sort(homeStrings);
-                    String homeList = homeListString(homeStrings);
-                    if (homeList != null) {
-                        sender.sendMessage(Component.text("[" + playerName + "]").append(LanguageManager.HOME_LIST_PREFIX).append(Component.text(homeList)));
-                    } else {
-                        sender.sendMessage(Component.text("[" + playerName + "] ").append(LanguageManager.NO_HOMES_FOUND));
-                    }
-
-            }
-            return true;
+            handleConsoleCommand(sender);
         }
+        return true;
     }
 
-    private String homeListString(String[] playerHomes) {
-        if (playerHomes.length == 0) return null;
-        return String.join(", ", playerHomes);
+    private void handlePlayerCommand(Player player, String[] args) {
+        if (args.length == 0) {
+            displayHomes(player, player.getUniqueId(), null);
+            return;
+        }
+
+        String targetName = args[0];
+        ProfileLookup.getUUIDFromName(targetName).thenAccept(uuid -> {
+            if (uuid == null) {
+                player.sendMessage(LanguageManager.PLAYER_NOT_EXIST);
+                return;
+            }
+            displayHomes(player, uuid, targetName);
+        });
+    }
+
+    private void displayHomes(CommandSender receiver, UUID targetUuid, String displayName) {
+        Map<String, Location> playerHomes = homeManager.getPlayerHomes(targetUuid);
+        if (playerHomes == null || playerHomes.isEmpty()) {
+            receiver.sendMessage(LanguageManager.NO_HOMES_FOUND);
+            return;
+        }
+
+        String sortedHomes = playerHomes.keySet().stream()
+            .sorted(String.CASE_INSENSITIVE_ORDER)
+            .collect(Collectors.joining(", "));
+
+        Component prefix = displayName != null
+            ? Component.text("[" + displayName + "]").append(LanguageManager.HOME_LIST_PREFIX)
+            : LanguageManager.HOME_LIST_PREFIX;
+
+        receiver.sendMessage(prefix.append(Component.text(" " + sortedHomes)));
+    }
+
+    private void handleConsoleCommand(CommandSender console) {
+        Map<UUID, Map<String, Location>> allHomes = homeManager.getHomes();
+        if (allHomes.isEmpty()) {
+            console.sendMessage(LanguageManager.NO_HOMES_FOUND);
+            return;
+        }
+
+        List<CompletableFuture<Void>> futures = new ArrayList<>();
+
+        for (Map.Entry<UUID, Map<String, Location>> entry : allHomes.entrySet()) {
+            UUID uuid = entry.getKey();
+            Map<String, Location> homes = entry.getValue();
+
+            if (homes == null || homes.isEmpty()) continue;
+
+            CompletableFuture<Void> future = ProfileLookup.getNameFromUUID(uuid).thenAccept(name -> {
+                String fallbackName = (name != null) ? name : uuid.toString();
+                String sortedHomes = homes.keySet().stream()
+                    .sorted(String.CASE_INSENSITIVE_ORDER)
+                    .collect(Collectors.joining(", "));
+                
+                console.sendMessage(Component.text("[" + fallbackName + "] ")
+                    .append(LanguageManager.HOME_LIST_PREFIX)
+                    .append(Component.text(" " + sortedHomes)));
+            });
+
+            futures.add(future);
+        }
     }
 }

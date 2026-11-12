@@ -28,6 +28,7 @@
  */
 package net.lankylord.simplehomes.commands;
 
+import net.lankylord.simplehomes.SimpleHomes;
 import net.lankylord.simplehomes.configuration.languages.LanguageManager;
 import net.lankylord.simplehomes.homes.HomeManager;
 import org.bukkit.command.Command;
@@ -38,29 +39,35 @@ import org.bukkit.entity.Player;
 public class SetHomeCommand implements CommandExecutor {
 
     private final HomeManager homeManager;
+    private final SimpleHomes simpleHomes;
 
-    public SetHomeCommand(HomeManager manager) {
+    public SetHomeCommand(SimpleHomes plugin, HomeManager manager) {
         homeManager = manager;
+        simpleHomes = plugin;
     }
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String s, String[] args) {
-        if (sender instanceof Player) {
-            Player player = (Player) sender;
-            String homeName = "default";
-            if (args.length == 1 && sender.hasPermission("simplehomes.multihomes")) {
-                homeName = args[0].toLowerCase();
-            }
-            if (homeManager.reachedMaxHomes(player.getUniqueId()) && !homeManager.getPlayerHomes(player.getUniqueId()).containsKey(homeName)) {
-                player.sendMessage(LanguageManager.HOME_MAX_REACHED);
-                return true;
-            }
-            homeManager.saveHome(player, homeName);
-            player.sendMessage(LanguageManager.HOME_SET);
-            return true;
-        } else {
+        if(!(sender instanceof Player)) {
             sender.sendMessage(LanguageManager.PLAYER_COMMAND_ONLY);
+            return false;
         }
-        return false;
+
+        Player player = (Player) sender;
+
+        final String homeLabel = (args.length == 1 && sender.hasPermission("simplehomes.multihomes"))
+            ? args[0].toLowerCase()
+            : "default";
+
+        if (homeManager.reachedMaxHomes(player.getUniqueId()) && !homeManager.getPlayerHomes(player.getUniqueId()).containsKey(homeLabel)) {
+            player.sendMessage(LanguageManager.HOME_MAX_REACHED);
+            return true;
+        }
+
+        player.getScheduler().run(simpleHomes, task -> {
+            homeManager.saveHome(player, homeLabel);
+            player.sendMessage(LanguageManager.HOME_SET);
+        }, null);
+        return true;
     }
 }

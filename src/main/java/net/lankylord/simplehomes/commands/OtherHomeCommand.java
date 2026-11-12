@@ -31,14 +31,13 @@ package net.lankylord.simplehomes.commands;
 import net.lankylord.simplehomes.SimpleHomes;
 import net.lankylord.simplehomes.configuration.languages.LanguageManager;
 import net.lankylord.simplehomes.homes.HomeManager;
-import net.lankylord.simplehomes.util.UUIDManager;
+import net.lankylord.simplehomes.util.ProfileLookup;
+
 import org.bukkit.Location;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
-
-import java.util.UUID;
 
 public class OtherHomeCommand implements CommandExecutor {
 
@@ -66,42 +65,42 @@ public class OtherHomeCommand implements CommandExecutor {
         final Player player = (Player) sender;
 
         simpleHomes.getServer().getAsyncScheduler().runNow(simpleHomes, asyncTask -> {
-            UUID targetUUID = UUIDManager.getUUIDFromPlayer(targetName);
+            ProfileLookup.getUUIDFromName(targetName).thenAccept(uuid -> {
+                if (uuid == null) {
+                    player.getScheduler().run(simpleHomes, task -> {
+                        player.sendMessage(LanguageManager.PLAYER_NOT_EXIST);
+                    }, null);
+                }
 
-            if (targetUUID == null) {
+                Location location = homeManager.getPlayerHome(uuid, homeName);
+                if (location == null) {
+                    location = homeManager.getPlayerHomeFromFile(uuid, homeName);
+                }
+
+                final Location destination = location;
+
                 player.getScheduler().run(simpleHomes, task -> {
-                    player.sendMessage(LanguageManager.PLAYER_NOT_EXIST);
-                }, null);
-                return;
-            }
+                    if (!player.isOnline()) {
+                        return;
+                    }
 
-            Location location = homeManager.getPlayerHome(targetUUID, homeName);
-            if (location == null) {
-                location = homeManager.getPlayerHomeFromFile(targetUUID, homeName);
-            }
-
-            final Location destination = location;
-
-            player.getScheduler().run(simpleHomes, task -> {
-                if (!player.isOnline()) {
-                    return;
-                }
-
-                if (destination != null) {
-                    player.teleportAsync(destination).thenAccept(success -> {
-                        if (success) {
-                            player.sendMessage(LanguageManager.TELEPORT_OTHERHOME
-                                .replaceText(b -> b.matchLiteral("%p").replacement(targetName))
-                            );
-                        }
-                    });
-                } else {
-                    player.sendMessage(LanguageManager.HOME_NOT_FOUND);
-                }
+                    if (destination != null) {
+                        player.teleportAsync(destination).thenAccept(success -> {
+                            if (success) {
+                                player.sendMessage(LanguageManager.TELEPORT_OTHERHOME
+                                    .replaceText(b -> b.matchLiteral("%p").replacement(targetName))
+                                );
+                            }
+                        });
+                    } else {
+                        player.sendMessage(LanguageManager.HOME_NOT_FOUND);
+                    }
             }, null);
+
         });
         
-        return true;
-    }
+    });
+    return true;
+}
 }
 
